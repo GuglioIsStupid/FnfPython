@@ -198,8 +198,6 @@ class Playstate(Scene.Base):
         for note in self.strumlineNotes:
             note.update(deltaTime)
 
-        #if len(notes) > 0: print(notes[0].y)   
-
         camHUD.zoom = CoolUtil.lerp(camHUD.defaultZoom, camHUD.zoom, CoolUtil.clamp(1 - (deltaTime * 3.125), 0, 1))
 
     def render(self, screen):
@@ -207,10 +205,7 @@ class Playstate(Scene.Base):
         self.gameScreen.fill((0, 0, 0))
         self.uiScreen.fill((0, 0, 0, 0))
         self.uiScreen.set_alpha(255)
-        # remove uiScreen background
-        
-        # rescale screen to camHUD.zoom
-        
+                
         stageData.draw(self.gameScreen)
 
         for note in self.sustainNotes:
@@ -224,13 +219,9 @@ class Playstate(Scene.Base):
             if note.y < 800:
                 note.draw(self.uiScreen, note.getFrameWidth()/4.25+25)
 
-        # blit gameScreen to screen to camHUD.zoom
-        #print fps
         screen.blit(pg.transform.scale(self.gameScreen, (1280, 720)), (0, 0))
         screen.blit(pg.transform.scale(self.uiScreen, (1280 * camHUD.zoom, 720 * camHUD.zoom)), (0, 0))
         
-
-
     def onBeat(self, beat):
         if beat % 4 == 0:
             camHUD.zoom += 0.015
