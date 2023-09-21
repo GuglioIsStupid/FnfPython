@@ -1,5 +1,6 @@
 import modules.Wait as Wait
 curScene = None
+lastScene = None
 
 class Base(object):
     def __init__(self):
@@ -15,5 +16,8 @@ class Base(object):
         raise NotImplementedError
 
 def setScene(scene):
-    global curScene
+    global curScene, lastScene
+    lastScene = curScene
+    if lastScene != None:
+        lastScene.__unload__()
     curScene = scene

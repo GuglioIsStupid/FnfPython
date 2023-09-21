@@ -259,6 +259,10 @@ class Sprite():
             self.stop()
             self.curFrame = len(self.curAnim["frames"])
 
+    def unload(self):
+        self.texture = None
+        self.__frames = None
+        self.__animations = None
 
     def update(self, deltaTime):
         if self.alive and self.exists and self.curAnim and not self.animFinished and not self.animPaused:

@@ -67,3 +67,10 @@ class TitleState(Scene.Base):
 
     def handle_events(self, events = None):
         pass
+
+    def __unload__(self):
+        #unload assets
+        self.gf.unload()
+        self.logo.unload()
+        self.enter.unload()
+        pass
