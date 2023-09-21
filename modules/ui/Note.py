@@ -13,6 +13,7 @@ import modules.Sprite as Sprite
 import modules.Conductor as Conductor
 
 class Note(Sprite.Sprite):
+    directions = ["left", "down", "up", "right"]
     strumTime = 0
 
     mustPress = False

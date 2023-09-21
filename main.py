@@ -19,7 +19,7 @@ import states.TitleState as TitleState
 
 pg.init()
  
-fps = 60
+fps = 165
 clock = pg.time.Clock()
  
 width, height = 1280, 720
@@ -73,14 +73,14 @@ while True:
         if Scene.curScene.onBeat != None: Scene.curScene.onBeat(int(Conductor.getBeat()))
 
     MainLoop._draw(screen)
-  
+    # update the screen
+    # debug text on top left displaying fps
+    screen.blit(font.render(str(int(clock.get_fps())), False, (255, 255, 255)), (0, 0))
+
     pg.display.flip()
     clock.tick(fps)
     lastTime = gameTime
-
-    # update the screen
+    #print(clock.get_fps())
     pg.display.update()
 
-    # debug text on top left displaying fps
-    #screen.blit(font.render(str(int(clock.get_fps())), False, (255, 255, 255)), (0, 0))
-    #print(clock.get_fps())
+    

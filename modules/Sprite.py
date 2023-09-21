@@ -20,8 +20,13 @@ def getSparrow(key):
 
 Cache = {}
 
+def getImage(path):
+    if not path in Cache:
+        Cache[path] = pg.image.load(path).convert_alpha()
+    return Cache[path]
+
 class Sprite():
-    def _newFrame(name, x, y, w, h, sw, sh, ox, oy, ow, oh):
+    def _newFrame(name, x, y, w, h, sw, sh, ox=None, oy=None, ow=None, oh=None):
         aw, ah = x + w, y + h
         frame = {}
         frame["name"] = name
@@ -85,6 +90,8 @@ class Sprite():
         self.clipRect = None
         self.flipX = False
         self.flipY = False
+        self.lastFlipX = False
+        self.lastFlipY = False
 
         self.visible = True
         self.color = (255, 255, 255)
@@ -99,6 +106,8 @@ class Sprite():
         self.curFrame = None
         self.animFinished = None
         self.animPaused = False
+
+        self.animationsExist = False
 
         if img != None: self._load(img)
 
@@ -154,6 +163,7 @@ class Sprite():
 
     def addAnimByPrefix(self, name, prefix, framerate = None, looped = None):
         if self.__animations == None: self.__animations = {}
+        self.animationsExist = True
         if framerate == None: framerate = 30
         if looped == None: looped = True
 
@@ -168,8 +178,10 @@ class Sprite():
                 anim["frames"].append(frame)
 
         self.__animations[name] = anim
+
     def addAnimByIndices(self, name, prefix, indices, framerate = None, looped = None):
         if self.__animations == None: self.__animations = {}
+        self.animationsExist = True
         if framerate == None: framerate = 30
         if looped == None: looped = True
 
@@ -179,9 +191,11 @@ class Sprite():
         anim["looped"] = looped
         anim["frames"] = []
 
-        subEnd = len(prefix) + 1
+        # only take the last 3 characters of the prefix
+        subEnd = len(prefix)
         for i in indices:
             for f in self.__frames["frames"]:
+                #print(f["name"].startswith(prefix) and f["name"][subEnd:])
                 if f["name"].startswith(prefix) and int(f["name"][subEnd:]) == i:
                     anim["frames"].append(f)
                     break
@@ -189,9 +203,19 @@ class Sprite():
 
         self.__animations[name] = anim
 
+    # multiple arguments, inAnims
+    def inAnims(self, *args):
+        for arg in args:
+            if not arg in self.__animations:
+                return False
+        return True
+
     def getCurrentFrame(self):
         if self.curAnim:
-            return self.curAnim["frames"][math.floor(self.curFrame) - 1]
+            if math.floor(self.curFrame) - 1 in range(len(self.curAnim["frames"])):
+                return self.curAnim["frames"][math.floor(self.curFrame) - 1]
+            else:
+                return self.curAnim["frames"][0]
         elif self.__frames:
             return self.__frames["frames"][0]
         else:
@@ -211,6 +235,9 @@ class Sprite():
         else:
             return self.height
 
+    def getMidpoint(self):
+        return (self.x + self.width * 0.5, self.y + self.height * 0.5)
+
     def play(self, anim, force = False, frame = None):
         if not force and self.curAnim and self.curAnim["name"] == anim and not self.animFinished:
             self.animPaused = False
@@ -221,6 +248,16 @@ class Sprite():
         self.curFrame = frame == None and 1 or frame
         self.animFinished = False
         self.animPaused = False
+
+    def stop(self):
+        if self.curAnim:
+            self.animFinished = True
+            self.animPaused = True
+
+    def finish(self):
+        if self.curAnim:
+            self.stop()
+            self.curFrame = len(self.curAnim["frames"])
 
 
     def update(self, deltaTime):
@@ -237,12 +274,10 @@ class Sprite():
             if self.curAnim and self.curFrame and self.curFrame >= 0:
                 frame = self.curAnim["frames"][math.floor(self.curFrame)-1]
             else:
-                frame = self.curFrame
+                frame = None
+
 
             x, y, angle, sx, sy, ox, oy = self.x, self.y, self.angle, self.scale[0], self.scale[1], self.origin[0], self.origin[1]
-
-            if self.flipX: sx = -sx
-            if self.flipY: sy = -sy
 
             if frame:
                 ox, oy = ox + frame["offset"][0], oy + frame["offset"][1]
@@ -257,6 +292,21 @@ class Sprite():
 
             # apply the rotation
             #self.texture = pg.transform.rotate(self.texture, angle)
+
+            if self.lastFlipX != self.flipX or self.lastFlipY != self.flipY:
+                self.texture = pg.transform.flip(self.texture, self.flipX, self.flipY)
+                self.lastFlipX = self.flipX
+                self.lastFlipY = self.flipY
+
+                # update the frames
+                if self.__frames != None:
+                    for f in self.__frames["frames"]:
+                        f["quad"] = pg.Rect(
+                            self.width - f["quad"].x - f["quad"].width,
+                            f["quad"].y,
+                            f["quad"].width,
+                            f["quad"].height
+                        )
 
             # since pygame sucks at transforming, only apply the scale and rotation if it changed
             if self.lastScale != self.scale:
@@ -279,6 +329,7 @@ class Sprite():
 
             # apply the offset
             x, y = x - ox, y - oy
+            x, y = x + int(self.offset[0]), y + int(self.offset[1])
             
             # apply the camera
             if self.camera != None:
