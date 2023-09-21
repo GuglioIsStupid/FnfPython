@@ -348,28 +348,9 @@ class Playstate(Scene.Base):
         uitext_rect = uiText.get_rect(center=(1280/2, 720 - 50))
         self.uiScreen.blit(uiText, uitext_rect)
 
-        # Camera blits (I am so fucking sorry, it's just how pygame is.....)
-        screen.blit(pg.transform.scale(self.gameScreen, (
-            1280 * self.zoomDifference * camGame.zoom, 
-            720 * self.zoomDifference * camGame.zoom
-        )), (
-            (1280-(1280 * self.zoomDifference * camGame.zoom))/2, 
-            (720-(720 * self.zoomDifference * camGame.zoom))/2)
-        )
-        screen.blit(pg.transform.scale(self.uiScreen, (
-            1280 * camHUD.zoom, 
-            720 * camHUD.zoom
-        )), (
-            (1280-(1280 * camHUD.zoom))/2, 
-            (720-(720 * camHUD.zoom))/2)
-        )
-        screen.blit(pg.transform.scale(self.iconScreen, (
-            1280 * camHUD.zoom * self.iconScale, 
-            720 * camHUD.zoom * self.iconScale
-        )), (
-            (1280-(1280 * camHUD.zoom * self.iconScale))/2, 
-            (720-(720 * camHUD.zoom * self.iconScale))/2)
-        )
+        screen.blit(self.gameScreen, (0, 0))
+        screen.blit(self.uiScreen, (0, 0))
+        screen.blit(self.iconScreen, (0, 0))
         
     def onBeat(self, beat):
         stageData.boyfriend.beat(beat)
